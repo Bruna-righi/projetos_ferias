@@ -9,4 +9,4 @@ Estarão inclusos projetos como:
 
 Para mais detalhes, basta entrar no diretório associado à cada projeto e ler o arquivo README.md próprio do projeto escolhido.
 
-Se pelo menos 1/3 do que foi proposto aqui tiver sido de fato desenvolvido, considerarei esse projeto como produtivo.
+Se pelo menos 1/3 do que foi proposto aqui tiver sido de fato desenvolvido, considerarei essas férias como produtivas.
