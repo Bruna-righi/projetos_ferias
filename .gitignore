@@ -5,3 +5,4 @@
 *.o
 *.zip
 *.json
+node_modules
