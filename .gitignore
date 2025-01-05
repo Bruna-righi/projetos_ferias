@@ -1,4 +1,6 @@
 .vscode/
+1026.c
 *.bin
 *.exe
 *.o
+*.zip
