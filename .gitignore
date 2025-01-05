@@ -5,4 +5,4 @@
 *.o
 *.zip
 *.json
-node_modules
+projetos_ferias/JavaScript/node_modules/
