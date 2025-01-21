@@ -5,97 +5,8 @@
 #include <math.h>
 #include <string.h>
 #include "xadrez.h"
-
-#define ESC "\033["
-#define RESET "\033[0m"
-#define JUNTA ";"
-#define FIM_ESC "m"
-#define BACKGROUND_PRETO "48;2;30;30;30"
-#define BACKGROUND_BRANCO "48;2;255;255;255"
-#define COR_PRETA "38;2;0;0;0"
-#define COR_BRANCA "38;2;255;255;255"
-#define COR_VERMELHA "38;2;255;0;0"
-
-#define tam_tab 8
-#define branco 0
-#define preto 1
-#define vazio 10
-#define peao 1
-#define torre 2
-#define cavalo 3
-#define bispo 4
-#define rainha 5
-#define rei 6
-
-#define peao_b "\U00002659"
-#define torre_b "\U00002656"
-#define cavalo_b "\U00002658"
-#define bispo_b "\U00002657"
-#define rainha_b "\U00002655"
-#define rei_b "\U00002654"
-#define peao_p "\U0000265F"
-#define torre_p "\U0000265C"
-#define cavalo_p "\U0000265E"
-#define bispo_p "\U0000265D"
-#define rainha_p "\U0000265B"
-#define rei_p "\U0000265A"
-
-typedef struct jogadas_possiveis{
-    int jogEspecial;
-    casa* ini;
-    casa* fim;
-    struct jogadas_possiveis* prox;
-} lista;
-
-typedef struct casa{
-    int peca;
-    char* p;
-    int cor;
-    int lin;
-    int col;
-    bool inicial;
-} casa;
-
-typedef struct jogo{
-    casa **tabuleiro;
-    bool fim;
-    int vez;
-    bool xeque;
-} jogo;
-
-lista* lista_cria(){
-    lista* l = malloc(sizeof(lista));
-    l->ini = NULL;
-    l->fim = NULL;
-    l->prox = NULL;
-    return l;
-}
-
-int cont = 0;
-
-void lista_insere(lista* l, casa* ini, casa* fim){
-    cont++;
-    lista* novo = lista_cria();
-    novo->ini = ini;
-    novo->fim = fim;
-    printf("ini: p:%d %d %c\n", novo->ini->peca, tam_tab - novo->ini->lin, 97 + novo->ini->col);
-    printf("fim:     %d %c\n", tam_tab - novo->fim->lin, 97 + novo->fim->col);
-    lista* aux = l;
-    while(aux->prox != NULL){
-        aux = aux->prox;
-    }
-    aux->prox = novo;
-}
-
-void lista_libera(lista* l){
-    lista* aux = l;
-    while(aux != NULL){
-        lista* aux2 = aux;
-        aux = aux->prox;
-        free(aux2);
-    }
-}
-
+#include "lista.h"
+#include "movimentos.h"
 
 // todas as peças estão colocadas nas posições iniciais corretas
 void tabuleiro_ini(jogo* j){
@@ -213,240 +124,15 @@ void imprime_tabuleiro(jogo* j){
 
 void libera_tabuleiro(jogo* j){
     for(int i = 0; i < tam_tab; i++){
+        for(int k = 0; k < tam_tab; k++){
+            free(j->tabuleiro[i][k].p);
+        }
+    }
+    for(int i = 0; i < tam_tab; i++){
         free(j->tabuleiro[i]);
     }
     free(j->tabuleiro);
     free(j);
-}
-
-void movimento_peao(lista* l, casa* c, jogo* t){
-    int lin = c->lin, col = c->col;
-    if(c->cor == branco){
-        // Movimento simples
-        if(lin - 1 >= 0 && lin - 1 < tam_tab && col >= 0 && col < tam_tab){
-            if(t->tabuleiro[lin-1][col].peca == vazio)
-                lista_insere(l, c, &t->tabuleiro[lin-1][col]);
-        }
-        else if(c->inicial) // Movimento duplo (Precisa checar inicial)
-            if(lin - 2 >= 0 && lin - 2 < tam_tab && col >= 0 && col < tam_tab){
-                if(t->tabuleiro[lin-2][col].peca == vazio && t->tabuleiro[lin - 1][col].peca == vazio)
-                    lista_insere(l, c, &t->tabuleiro[lin-2][col]);
-        }
-        //checa casa diagonal esquerda
-        if(lin - 1 >= 0 && col - 1 >= 0 && lin - 1 < tam_tab && col - 1 < tam_tab){
-            if(t->tabuleiro[lin - 1][col - 1].peca != vazio && t->tabuleiro[lin - 1][col - 1].cor != c->cor)
-                lista_insere(l, c, &t->tabuleiro[lin-1][col-1]);
-        }
-        //checa diagonal direita
-        if(lin - 1 >= 0 && lin - 1 < tam_tab && col + 1 < tam_tab && col + 1 >= 0){
-            if(t->tabuleiro[lin-1][col+1].peca != vazio && t->tabuleiro[lin-1][col+1].cor != c->cor)
-                lista_insere(l, c, &t->tabuleiro[lin-1][col+1]);
-        }
-    } else if(c->cor == preto){
-        // Movimento simples
-        if(lin + 1 >= 0 && lin + 1 < tam_tab && col >= 0 && col < tam_tab){
-            if(t->tabuleiro[lin+1][col].peca == vazio)
-                lista_insere(l, c, &t->tabuleiro[lin-1][col]);
-        }
-        else if(c->inicial) // Movimento duplo (Precisa checar inicial)
-            if(lin + 2 >= 0 && lin + 2 < tam_tab && col >= 0 && col < tam_tab){
-                if(t->tabuleiro[lin+2][col].peca == vazio && t->tabuleiro[lin + 1][col].peca == vazio)
-                    lista_insere(l, c, &t->tabuleiro[lin+2][col]);
-        }
-        //checa casa diagonal esquerda
-        if(lin + 1 >= 0 && col - 1 >= 0 && lin + 1 < tam_tab && col - 1 < tam_tab){
-            if(t->tabuleiro[lin + 1][col - 1].peca != vazio && t->tabuleiro[lin + 1][col - 1].cor != c->cor)
-                lista_insere(l, c, &t->tabuleiro[lin+1][col-1]);
-        }
-        //checa diagonal direita
-        if(lin + 1 >= 0 && lin + 1 < tam_tab && col + 1 < tam_tab && col + 1 >= 0){
-            if(t->tabuleiro[lin+1][col+1].peca != vazio && t->tabuleiro[lin+1][col+1].cor != c->cor)
-                lista_insere(l, c, &t->tabuleiro[lin+1][col+1]);
-        }
-    }
-    //preciso fazer o 'en passant'
-}
-
-void movimento_torre(lista* l, casa* c, jogo* t){
-    int lin = c->lin, col = c->col;
-    //checa todas as casas abaixo da posição inicial
-    for(int i = lin + 1; i < tam_tab; i++){
-        if(t->tabuleiro[i][col].peca == vazio)
-            lista_insere(l, c, &t->tabuleiro[i][col]);
-        else if(t->tabuleiro[i][col].cor != c->cor){
-            lista_insere(l, c, &t->tabuleiro[i][col]);
-            break;
-        }else break;
-    }
-    //checa todas as casas àcima da posição inicial
-    for(int i = lin - 1; lin >= 0; lin++){
-        if(t->tabuleiro[i][col].peca == vazio)
-            lista_insere(l, c, &t->tabuleiro[i][col]);
-        else if(t->tabuleiro[i][col].cor != c->cor){
-            lista_insere(l, c, &t->tabuleiro[i][col]);
-            break;
-        }else break;
-    }
-    //checa todas as casas à direita da posição inicial
-    for(int i = col + 1; i < tam_tab; i++){
-        if(t->tabuleiro[lin][i].peca == vazio)
-            lista_insere(l, c, &t->tabuleiro[lin][i]);
-        else if(t->tabuleiro[lin][i].cor != c->cor){
-            lista_insere(l, c, &t->tabuleiro[lin][i]);
-            break;
-        }else break;
-    }
-    //checa todas as casas à esquerda
-    for(int i = col - 1; col >= 0; col++){
-        if(t->tabuleiro[lin][i].peca == vazio)
-            lista_insere(l, c, &t->tabuleiro[lin][i]);
-        else if(t->tabuleiro[lin][i].cor != c->cor){
-            lista_insere(l, c, &t->tabuleiro[lin][i]);
-            break;
-        }else break;
-    }
-}
-
-void moviento_bispo(lista* l, casa* c, jogo* t){
-    int lin = c->lin, col = c->col;
-    //checa todas as casas na diagonal principal abaixo e à direita
-    for(int passo = 1; lin + passo < tam_tab && col + passo < tam_tab; passo++){
-        if(t->tabuleiro[lin + passo][col + passo].peca == vazio)
-            lista_insere(l, c, &t->tabuleiro[lin + passo][col + passo]);
-        else if(t->tabuleiro[lin + passo][col + passo].cor != c->cor){
-            lista_insere(l, c, &t->tabuleiro[lin + passo][col + passo]);
-            break;
-        }else break;
-    }
-    //checa todas as casa na diagonal principal àcima e à esquerda
-    for(int passo = 1; lin - passo >= 0 && col - passo >= 0; passo++){
-        if(t->tabuleiro[lin - passo][col - passo].peca == vazio)
-            lista_insere(l, c, &t->tabuleiro[lin - passo][col - passo]);
-        else if(t->tabuleiro[lin - passo][col - passo].cor != c->cor){
-            lista_insere(l, c, &t->tabuleiro[lin - passo][col - passo]);
-            break;
-        }else break;
-    }
-    //checa todas as casas na diagonal secundária abaixo e à esquerda
-    for(int passo = 1; lin + passo < tam_tab && col - passo >= 0; passo++){
-        if(t->tabuleiro[lin + passo][col - passo].peca == vazio)
-            lista_insere(l, c, &t->tabuleiro[lin + passo][col - passo]);
-        else if(t->tabuleiro[lin + passo][col - passo].cor != c->cor){
-            lista_insere(l, c, &t->tabuleiro[lin + passo][col - passo]);
-            break;
-        }else break;
-    }
-    //checa todas as casas na diagonal secundária àcima e à direita
-    for(int passo = 1; lin - passo >= 0 && col + passo >= 0; passo++){
-        if(t->tabuleiro[lin - passo][col + passo].peca == vazio)
-            lista_insere(l, c, &t->tabuleiro[lin - passo][col + passo]);
-        else if(t->tabuleiro[lin - passo][col + passo].cor != c->cor){
-            lista_insere(l, c, &t->tabuleiro[lin - passo][col + passo]);
-            break;
-        }else break;
-    }
-}
-
-void movimento_cavalo(lista* l, casa* c, jogo* t){
-    //faz o L
-    int lin = c->lin, col = c->col;
-    //2 p baixo, 1 p direita
-    if(lin + 2 >= 0 && lin + 2 < tam_tab && col + 1 < tam_tab && col + 1 >= 0){
-        if(t->tabuleiro[lin + 2][col + 1].peca == vazio || t->tabuleiro[lin + 2][col + 1].cor != c->cor)
-            lista_insere(l, c, &t->tabuleiro[lin + 2][col + 1]);
-    }
-    if(lin + 2 >= 0 && lin + 2 < tam_tab && col - 1 < tam_tab && col - 1 >= 0){
-        if(t->tabuleiro[lin + 2][col - 1].peca == vazio || t->tabuleiro[lin + 2][col - 1].cor != c->cor)
-            lista_insere(l, c, &t->tabuleiro[lin + 2][col - 1]);
-    }
-    if(lin - 2 >= 0 && lin - 2 < tam_tab && col + 1 < tam_tab && col + 1 >= 0){
-        if(t->tabuleiro[lin - 2][col + 1].peca == vazio || t->tabuleiro[lin - 2][col + 1].cor != c->cor)
-            lista_insere(l, c, &t->tabuleiro[lin - 2][col + 1]);
-    }
-    if(lin - 2 >= 0 && lin - 2 < tam_tab && col - 1 < tam_tab && col - 1 >= 0){
-        if(t->tabuleiro[lin - 2][col - 1].peca == vazio || t->tabuleiro[lin - 2][col - 1].cor != c->cor)
-            lista_insere(l, c, &t->tabuleiro[lin - 2][col - 1]);
-    }
-    if(lin + 1 >= 0 && lin + 1 < tam_tab && col + 2 < tam_tab && col + 2 >= 0){
-        if(t->tabuleiro[lin + 1][col + 2].peca == vazio || t->tabuleiro[lin + 1][col + 2].cor != c->cor)
-            lista_insere(l, c, &t->tabuleiro[lin + 1][col + 2]);
-    }
-    if(lin + 1 >= 0 && lin + 1 < tam_tab && col - 2 < tam_tab && col - 2 >= 0){
-        if(t->tabuleiro[lin + 1][col - 2].peca == vazio || t->tabuleiro[lin + 1][col - 2].cor != c->cor)
-            lista_insere(l, c, &t->tabuleiro[lin + 1][col - 2]);
-    }
-    if(lin - 1 >= 0 && lin - 1 < tam_tab && col + 2 < tam_tab && col + 2 >= 0){
-        if(t->tabuleiro[lin - 1][col + 2].peca == vazio || t->tabuleiro[lin - 1][col + 2].cor != c->cor)
-            lista_insere(l, c, &t->tabuleiro[lin - 1][col + 2]);
-    }
-    if(lin - 1 >= 0 && lin - 1 < tam_tab && col - 2 < tam_tab && col - 2 >= 0){
-        if(t->tabuleiro[lin - 1][col - 2].peca == vazio || t->tabuleiro[lin - 1][col - 2].cor != c->cor)
-            lista_insere(l, c, &t->tabuleiro[lin - 1][col - 2]);
-    }
-}
-
-bool movimento_rei(lista* l, casa* c, jogo* t){
-    int lin = c->lin, col = c->col;
-    int passo = 1;
-    //movimento diagonal
-    if(lin + passo >= 0 && lin + passo < tam_tab && col + passo < tam_tab && col + passo >= 0){
-        if(t->tabuleiro[lin + passo][col + passo].peca == vazio || t->tabuleiro[lin + passo][col + passo].cor != c->cor)
-            lista_insere(l, c, &t->tabuleiro[lin + passo][col + passo]);
-    }
-    if(lin - passo >= 0 && lin - passo < tam_tab && col + passo < tam_tab && col + passo >= 0){
-        if(t->tabuleiro[lin - passo][col + passo].peca == vazio || t->tabuleiro[lin - passo][col + passo].cor != c->cor)
-            lista_insere(l, c, &t->tabuleiro[lin - passo][col + passo]);
-    }
-    if(lin + passo >= 0 && lin + passo < tam_tab && col - passo < tam_tab && col - passo >= 0){
-        if(t->tabuleiro[lin + passo][col - passo].peca == vazio || t->tabuleiro[lin + passo][col - passo].cor != c->cor)
-            lista_insere(l, c, &t->tabuleiro[lin + passo][col - passo]);
-    }
-    if(lin - passo >= 0 && lin - passo < tam_tab && col - passo < tam_tab && col - passo >= 0){
-        if(t->tabuleiro[lin - passo][col - passo].peca == vazio || t->tabuleiro[lin - passo][col - passo].cor != c->cor)
-            lista_insere(l, c, &t->tabuleiro[lin - passo][col - passo]);
-    }
-    //movimento horizontal
-    if(lin >= 0 && lin < tam_tab && col + passo < tam_tab && col + passo >= 0){
-        if(t->tabuleiro[lin][col + passo].peca == vazio || t->tabuleiro[lin][col + passo].cor != c->cor)
-            lista_insere(l, c, &t->tabuleiro[lin][col + passo]);
-    }
-    if(lin >= 0 && lin < tam_tab && col - passo < tam_tab && col - passo >= 0){
-        if(t->tabuleiro[lin][col - passo].peca == vazio || t->tabuleiro[lin][col - passo].cor != c->cor)
-            lista_insere(l, c, &t->tabuleiro[lin][col - passo]);
-    }
-    //movimento vertical
-    if(lin + passo >= 0 && lin + passo < tam_tab && col >= 0 && col < tam_tab){
-        if(t->tabuleiro[lin + passo][col].peca == vazio || t->tabuleiro[lin + passo][col].cor != c->cor)
-            lista_insere(l, c, &t->tabuleiro[lin + passo][col]);
-    }
-    if(lin - passo >= 0 && lin - passo < tam_tab && col >= 0 && col < tam_tab){
-        if(t->tabuleiro[lin - passo][col].peca == vazio || t->tabuleiro[lin - passo][col].cor != c->cor)
-            lista_insere(l, c, &t->tabuleiro[lin - passo][col]);
-    }
-    //roque
-    /*if(c->inicial){
-        for(int i = col + 1; i < tam_tab; i++){
-            if(t->tabuleiro[lin][i].peca != vazio) break;
-            if(i == tam_tab - 1){
-                if(t->tabuleiro[lin][i].inicial){
-                    lista_insere(l, c, &t->tabuleiro[lin][i - 1]);
-                    lista_insere(l, &t->tabuleiro[lin][i], &t->tabuleiro[lin][col + 1]);
-                }
-            }
-        }
-    }
-        if(c->inicial){
-        for(int i = col - 1; i > 0; i--){
-            if(t->tabuleiro[lin][i].peca != vazio) break;
-            if(i == tam_tab - 1){
-                if(t->tabuleiro[lin][i].inicial){
-                    lista_insere(l, c, &t->tabuleiro[lin][i - 1]);
-                    lista_insere(l, &t->tabuleiro[lin][i], &t->tabuleiro[lin][col + 1]);
-                }
-            }
-        }
-    }
-    */
 }
 
 lista* computa_jogadas(jogo* t){
@@ -474,7 +160,7 @@ lista* computa_jogadas(jogo* t){
 
             //se a peça é um bispo, adiciona os movimentos de bispo
             else if(t->tabuleiro[i][j].peca == bispo){
-                moviento_bispo(l, &t->tabuleiro[i][j], t);
+                movimento_bispo(l, &t->tabuleiro[i][j], t);
             }
 
             //se a peça é um cavalo, adicona os movimentos de cavalo
@@ -485,7 +171,7 @@ lista* computa_jogadas(jogo* t){
             //se a peça é uma rainha, testa para bispo e torre
             else if(t->tabuleiro[i][j].peca == rainha){
                 movimento_torre(l, &t->tabuleiro[i][j], t);
-                moviento_bispo(l, &t->tabuleiro[i][j], t);                
+                movimento_bispo(l, &t->tabuleiro[i][j], t);                
             }
         }
     }
@@ -518,25 +204,10 @@ void jogo_inicializa(jogo* j){
     j->fim = false;
     j->xeque = false;
     j->vez = branco; //branco começa
-}
 
-lista* lista_busca(lista* l, casa* ini, casa* fim){
-    // procura na lista uma jogada com determinada casa inicial
-    lista* aux = l;
-    while(aux != NULL && aux->ini != ini && aux->fim != fim){
-        aux = aux->prox;
-    }
-    if(aux == NULL) return NULL;
-    else return aux;
-}
-
-lista* lista_busca_fim(lista* l, casa* b){
-    lista* aux = l;
-    while(aux != NULL && aux->fim != b){
-        aux = aux->prox;
-    }
-    if(aux == NULL) return NULL;
-    else return aux;
+    j->u_jog = malloc(sizeof(ultima_jogada));
+    j->u_jog->ini = NULL;
+    j->u_jog->fim = NULL;
 }
 
 // preciso alterar ainda
@@ -555,6 +226,7 @@ bool detecta_xeque(jogo* t, lista* l){
 
 bool le_jogada(jogo *t){
     // cria uma lista de jogadas possíveis para cada jogador (branco ou preto) de acordo com a vez
+
     lista* l = computa_jogadas(t);
     int lin_ini, lin_fim, col_i, col_f;
     char col_ini, col_fim;
@@ -574,7 +246,7 @@ bool le_jogada(jogo *t){
     lin_ini = tam_tab - lin_ini;
     lin_fim = tam_tab - lin_fim;
 
-    printf("lin_ini: %d, col_i: %d\nlin_fim: %d, col_f: %d", lin_ini, col_i, lin_fim, col_f);
+    //printf("lin_ini: %d, col_i: %d\nlin_fim: %d, col_f: %d", lin_ini, col_i, lin_fim, col_f);
     if(col_i > 7 || col_i < 0 || col_f > 7 || col_f < 0){
         printf("Coluna inválida\n");
         //reseta a lista
@@ -615,7 +287,16 @@ bool le_jogada(jogo *t){
     }else{
         t->xeque = false;
     }
+    //checar o en passant
+    if(t->u_jog->ini != NULL){
+        //en_passant(t, &t->tabuleiro[lin_ini][col_i], &t->tabuleiro[lin_fim][col_f]);
+    }
+    //mudar a ultima jogada
+    t->u_jog->ini = &t->tabuleiro[lin_ini][col_i];
+    t->u_jog->fim = &t->tabuleiro[lin_fim][col_f];
     //muda a vez e reseta a lista
+
+    //printf("\n\t%d\n", t->u_jog->fim->cor);
     if(t->vez == branco) t->vez = preto;
     else t->vez = branco;
     
@@ -632,7 +313,7 @@ int main(){
     while(!t->fim){
         imprime_tabuleiro(t);
         while(!le_jogada(t));
-        system("clear");
+        //system("clear");
     }
     imprime_tabuleiro(t);
     libera_tabuleiro(t);
