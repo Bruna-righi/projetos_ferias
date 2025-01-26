@@ -42,6 +42,11 @@ typedef struct jogadas_possiveis lista;
 typedef struct casa casa;
 typedef struct jogo jogo;
 
+typedef struct turno{
+    int c;
+    bool xeque;
+}turno;
+
 typedef struct ultima_jogada{
     casa* ini;
     casa* fim;
@@ -56,7 +61,6 @@ struct jogadas_possiveis{
 
 struct casa{
     int peca;
-    char* p;
     int cor;
     int lin;
     int col;
@@ -65,22 +69,19 @@ struct casa{
 
 struct jogo{
     casa **tabuleiro;
+    char*** unicodes;
     bool fim;
-    int vez;
-    bool xeque;
+    turno vez[2];
+    int jogador;
     ultima_jogada* u_jog;
+    int empate;
 };
 
-lista* lista_cria();
-void lista_insere(lista* l, casa* ini, casa* fim);
-void lista_libera(lista* l);
 void tabuleiro_ini(jogo* j);
 void imprime_tabuleiro(jogo* j);
 void libera_tabuleiro(jogo* j);
 lista* computa_jogadas(jogo* t);
 void jogo_inicializa(jogo* j);
-lista* lista_busca_ini(lista* l, casa* b);
-lista* lista_busca_fim(lista* l, casa* b);
-bool detecta_xeque(jogo* t, lista* l);
+bool detecta_xeque(jogo* t, casa* c);
 
 #endif

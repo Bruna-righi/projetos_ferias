@@ -8,13 +8,21 @@
 #include "lista.h"
 #include "movimentos.h"
 
+bool empate_por_mov(jogo* t, bool reseta){
+    if(reseta){
+        t->empate = 0;
+    }
+    else t->empate++;
+    if(t->empate >= 100){
+        t->fim = true;
+        printf("Empate! Você esgotou seus movimentos!");
+    }
+}
+
 // todas as peças estão colocadas nas posições iniciais corretas
 void tabuleiro_ini(jogo* j){
     int n = torre;
     for(int i = 0; i < tam_tab/2; i++){
-        //inicializa os espaçõs para os códigos unicode
-        j->tabuleiro[0][i].p = malloc(sizeof(char)*5);
-        j->tabuleiro[7][i].p = malloc(sizeof(char)*5);
 
         //inicializa as cores das pecas
         j->tabuleiro[0][i].cor = preto;
@@ -33,10 +41,9 @@ void tabuleiro_ini(jogo* j){
         j->tabuleiro[7][tam_tab - i -1].col = tam_tab - i - 1;
 
         //inicializa as peças
-        if(n == rainha) n++;
         j->tabuleiro[0][i].peca = n;
         j->tabuleiro[7][i].peca = n;
-        if(n == rei) n--;
+        if(n == rainha) n++;
         j->tabuleiro[0][tam_tab - i -1].peca = n;
         j->tabuleiro[7][tam_tab - i -1].peca = n;
         n++;
@@ -47,32 +54,24 @@ void tabuleiro_ini(jogo* j){
         j->tabuleiro[0][tam_tab - i -1].inicial = true;
         j->tabuleiro[7][tam_tab - i -1].inicial = true;
     }
-    j->tabuleiro[0][0].p = torre_p;
-    j->tabuleiro[0][1].p = cavalo_p;
-    j->tabuleiro[0][2].p = bispo_p;
-    j->tabuleiro[0][3].p = rainha_p;
-    j->tabuleiro[0][4].p = rei_p;
-    j->tabuleiro[0][5].p = bispo_p;
-    j->tabuleiro[0][6].p = cavalo_p;
-    j->tabuleiro[0][7].p = torre_p;
-    j->tabuleiro[7][0].p = torre_b;
-    j->tabuleiro[7][1].p = cavalo_b;
-    j->tabuleiro[7][2].p = bispo_b;
-    j->tabuleiro[7][3].p = rainha_b;
-    j->tabuleiro[7][4].p = rei_b;
-    j->tabuleiro[7][5].p = bispo_b;
-    j->tabuleiro[7][6].p = cavalo_b;
-    j->tabuleiro[7][7].p = torre_b;
+    strcpy(j->unicodes[branco][peao], peao_b);
+    strcpy(j->unicodes[branco][torre], torre_b);
+    strcpy(j->unicodes[branco][cavalo], cavalo_b);
+    strcpy(j->unicodes[branco][bispo], bispo_b);
+    strcpy(j->unicodes[branco][rainha], rainha_b);
+    strcpy(j->unicodes[branco][rei], rei_b);
+    strcpy(j->unicodes[preto][peao], peao_p);
+    strcpy(j->unicodes[preto][torre], torre_p);
+    strcpy(j->unicodes[preto][cavalo], cavalo_p);
+    strcpy(j->unicodes[preto][bispo], bispo_p);
+    strcpy(j->unicodes[preto][rainha], rainha_p);
+    strcpy(j->unicodes[preto][rei], rei_p);
     n = peao;
     for(int i = 0; i < tam_tab; i++){
-        j->tabuleiro[1][i].p = malloc(sizeof(char)*5);
-        j->tabuleiro[6][i].p = malloc(sizeof(char)*5);
         j->tabuleiro[1][i].cor = preto;
         j->tabuleiro[6][i].cor = branco;
         //removendo os peões temporariamente para testar o movimento
 
-        /*j->tabuleiro[1][i].p = (j->tabuleiro[1][i].cor == branco) ? peao_b : peao_p;
-        j->tabuleiro[6][i].p = (j->tabuleiro[6][i].cor == branco) ? peao_b : peao_p;*/
         j->tabuleiro[1][i].lin = 1;
         j->tabuleiro[6][i].lin = 6;
         j->tabuleiro[1][i].col = i;
@@ -88,7 +87,6 @@ void tabuleiro_ini(jogo* j){
     }
     for(int i = 0; i < tam_tab; i++){
         for(int k = 2; k < tam_tab - 2; k++){
-            j->tabuleiro[k][i].p = malloc(sizeof(char)*5);
             j->tabuleiro[k][i].cor = vazio;
             j->tabuleiro[k][i].peca = vazio;
             j->tabuleiro[k][i].lin = k;
@@ -114,7 +112,7 @@ void imprime_tabuleiro(jogo* j){
             if(j->tabuleiro[i][k].peca == vazio){
                 printf("   ");
             }
-            else printf(" %s ", j->tabuleiro[i][k].p);
+            else printf(" %s ", j->unicodes[j->tabuleiro[i][k].cor][j->tabuleiro[i][k].peca]);
             printf(RESET);
         }
         printf("\n");
@@ -125,13 +123,18 @@ void imprime_tabuleiro(jogo* j){
 void libera_tabuleiro(jogo* j){
     for(int i = 0; i < tam_tab; i++){
         for(int k = 0; k < tam_tab; k++){
-            free(j->tabuleiro[i][k].p);
+            free(j->unicodes[i][k]);
         }
     }
+    for(int i = 0; i < 2; i++){
+        free(j->unicodes[i]);
+    }
+    free(j->unicodes);
     for(int i = 0; i < tam_tab; i++){
         free(j->tabuleiro[i]);
     }
     free(j->tabuleiro);
+    free(j->u_jog);
     free(j);
 }
 
@@ -145,7 +148,7 @@ lista* computa_jogadas(jogo* t){
 
             //se a casa for vazia (não há peças para movimentar) ou a peça não é do jogador deste turno, skip
             if(t->tabuleiro[i][j].peca == vazio) continue;
-            if(t->tabuleiro[i][j].cor != t->vez) continue;
+            if(t->tabuleiro[i][j].cor != t->vez[t->jogador].c) continue;
             
             //se a peça é um peão, adiciona na lista os movimentos do peão
             if(t->tabuleiro[i][j].peca == peao){
@@ -180,7 +183,7 @@ lista* computa_jogadas(jogo* t){
         for(int j = 0; j < tam_tab; j++){
 
             if(t->tabuleiro[i][j].peca == vazio) continue;
-            if(t->tabuleiro[i][j].cor != t->vez) continue;
+            if(t->tabuleiro[i][j].cor != t->vez[t->jogador].c) continue;
             if(t->tabuleiro[i][j].peca != rei) continue;
 
             // o movimento do rei só é possível se n colocar o rei em xeque
@@ -200,34 +203,60 @@ void jogo_inicializa(jogo* j){
     for(int i = 0; i < tam_tab; i++){
         j->tabuleiro[i] = (casa*) malloc(sizeof(casa)*tam_tab);
     }
+
+    j->unicodes = (char***) malloc(sizeof(char***)*2);
+    for(int i = 0; i < 2; i++){
+        j->unicodes[i] = (char**) malloc(sizeof(char**)*7);
+    }
+    for(int i = 0; i < 2; i++){
+        for(int k = 0;  k < 7; k++){
+            j->unicodes[i][k] = (char*) malloc(sizeof(char*)*5);
+        }
+    }
+
     // valores iniciais das variáveis do jogo
     j->fim = false;
-    j->xeque = false;
-    j->vez = branco; //branco começa
-
+    j->vez[0].c = branco;
+    j->vez[1].c = preto;
+    j->vez[0].xeque = false;
+    j->vez[1].xeque = false;
+    j->jogador = branco; // branco começa
     j->u_jog = malloc(sizeof(ultima_jogada));
     j->u_jog->ini = NULL;
     j->u_jog->fim = NULL;
 }
 
 // preciso alterar ainda
-bool detecta_xeque(jogo* t, lista* l){
-    int i, j;
-    for(i = 0; i < tam_tab; i++){
-        for(j = 0; j < tam_tab; j++){
-            if(t->tabuleiro[i][j].peca == rei && t->tabuleiro[i][j].cor != t->vez) break;
-        }
-    }
-    if(lista_busca_fim(l, &t->tabuleiro[i][j]) != NULL){
-        return true;
+bool detecta_xeque(jogo* t, casa *c){
+    printf("Testando\n");
+    switch(c->peca){
+        case rainha:
+            printf("Entrei aq\n");
+            if(bispo_xeque(t, c) || torre_xeque(t, c)) return true;
+            break;
+        case peao:
+            if(peao_xeque(c, t)) return true;
+            break;
+        case cavalo:
+            if(cavalo_xeque(t, c)) return true;
+            break;
+        case bispo:
+            if(bispo_xeque(t, c)) return true;
+            break;
+        case torre:
+            if(torre_xeque(t, c)) return true;
+            break;
     }
     return false;
 }
 
 bool le_jogada(jogo *t){
-    // cria uma lista de jogadas possíveis para cada jogador (branco ou preto) de acordo com a vez
 
+    // cria uma lista de jogadas possíveis para cada jogador (branco ou preto) de acordo com a vez
     lista* l = computa_jogadas(t);
+    
+    bool reseta = false;
+    bool capturada = false;
     int lin_ini, lin_fim, col_i, col_f;
     char col_ini, col_fim;
     printf("\n\tVez do jogador %s", t->vez == branco ? "branco\n" : "preto\n");
@@ -259,34 +288,22 @@ bool le_jogada(jogo *t){
         lista_libera(l);
         return false;
     }
-    
-    if(lista_busca_fim(l, &t->tabuleiro[lin_fim][col_f]) == NULL){
-        printf("Jogada inválida: fim\n");
-        //reseta a lista
-        lista_libera(l);
-        return false;
-    }
     if(lista_busca(l, &t->tabuleiro[lin_ini][col_i], &t->tabuleiro[lin_fim][col_f]) == NULL){
         printf("Jogada inválida: ini\n");
         //reseta a lista
         lista_libera(l);
         return false;
     }
-    printf("Busca realizada com sucesso!\n");
+    if(t->tabuleiro[lin_fim][col_f].peca != vazio) reseta = true;
+    if(t->tabuleiro[lin_ini][col_i].peca == peao) reseta = true;
     t->tabuleiro[lin_fim][col_f].peca = t->tabuleiro[lin_ini][col_i].peca;
-    strcpy(t->tabuleiro[lin_fim][col_f].p, t->tabuleiro[lin_ini][col_i].p);
-    t->tabuleiro[lin_fim][col_f].cor = t->vez;
+    printf("%d\n", t->tabuleiro[lin_fim][col_f].peca);
+    t->tabuleiro[lin_fim][col_f].cor = t->vez[t->jogador].c;
     t->tabuleiro[lin_ini][col_i].peca = vazio;
     t->tabuleiro[lin_ini][col_i].cor = vazio;
     t->tabuleiro[lin_ini][col_i].inicial = false;
     t->tabuleiro[lin_fim][col_f].inicial = false;
-    // checa se esse movimento coloca o rei inimigo em xeque
-    if(detecta_xeque(t, l)){
-        printf("Xeque\n");
-        t->xeque = true;
-    }else{
-        t->xeque = false;
-    }
+
     //checar o en passant
     if(t->u_jog->ini != NULL){
         //en_passant(t, &t->tabuleiro[lin_ini][col_i], &t->tabuleiro[lin_fim][col_f]);
@@ -294,13 +311,26 @@ bool le_jogada(jogo *t){
     //mudar a ultima jogada
     t->u_jog->ini = &t->tabuleiro[lin_ini][col_i];
     t->u_jog->fim = &t->tabuleiro[lin_fim][col_f];
+
+    //eu preciso recalcular a lista para testar
+    //se esse movimento coloca o rei inimigo em xeque
+    // - ou posso simplesmente testar os movimentos possíveis da 
+    // peça alterada e testar se algum deles atinge o rei: mais fácil
+
+    if(detecta_xeque(t, &t->tabuleiro[lin_fim][col_f])){
+        printf("Xeque\n");
+        t->vez[t->jogador].xeque = true;
+    }else{
+        t->vez[t->jogador].xeque = false;
+    }
+
     //muda a vez e reseta a lista
 
-    //printf("\n\t%d\n", t->u_jog->fim->cor);
-    if(t->vez == branco) t->vez = preto;
-    else t->vez = branco;
+    if(t->jogador == branco) t->jogador = preto;
+    else t->jogador = branco;
     
     lista_libera(l);
+    if(empate_por_mov(t, reseta)) return true;
     return true;
 
 }

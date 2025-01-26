@@ -6,6 +6,143 @@
 #include <string.h>
 #include "xadrez.h"
 #include "movimentos.h"
+#include "lista.h"
+
+bool peao_xeque(casa* c, jogo* t){
+    int lin = c->lin, col = c->col;
+    if(c->cor == branco){
+        //checa casa diagonal esquerda
+        if(lin - 1 >= 0 && col - 1 >= 0 && lin - 1 < tam_tab && col - 1 < tam_tab){
+            if(t->tabuleiro[lin - 1][col - 1].peca == rei && t->tabuleiro[lin - 1][col - 1].cor != c->cor)
+                return true;
+        }
+        //checa diagonal direita
+        if(lin - 1 >= 0 && lin - 1 < tam_tab && col + 1 < tam_tab && col + 1 >= 0){
+            if(t->tabuleiro[lin-1][col+1].peca == rei && t->tabuleiro[lin-1][col+1].cor != c->cor)
+                return true;
+        }
+    } else if(c->cor == preto){
+        //checa casa diagonal esquerda
+        if(lin + 1 >= 0 && col - 1 >= 0 && lin + 1 < tam_tab && col - 1 < tam_tab){
+            if(t->tabuleiro[lin + 1][col - 1].peca == rei && t->tabuleiro[lin + 1][col - 1].cor != c->cor)
+                return true;
+        }
+        //checa diagonal direita
+        if(lin + 1 >= 0 && lin + 1 < tam_tab && col + 1 < tam_tab && col + 1 >= 0){
+            if(t->tabuleiro[lin+1][col+1].peca == rei && t->tabuleiro[lin+1][col+1].cor != c->cor)
+                return true;
+        }
+    }
+    return false;
+}
+
+bool torre_xeque(jogo* t, casa* c){
+    int lin = c->lin, col = c->col;
+    //checa todas as casas abaixo da posição inicial
+    for(int i = lin + 1; i < tam_tab; i++){
+        if(t->tabuleiro[i][col].peca == vazio) continue;
+        else if(t->tabuleiro[i][col].peca == rei && t->tabuleiro[i][col].cor != c->cor) return true;
+        else break;
+    }
+    //checa todas as casas àcima da posição inicial
+    for(int i = lin - 1; i >= 0; i--){
+        if(t->tabuleiro[i][col].peca == vazio) continue;
+        else if(t->tabuleiro[i][col].peca == rei && t->tabuleiro[i][col].cor != c->cor) return true;
+        else break;
+    }
+    //checa todas as casas à direita da posição inicial
+    for(int i = col + 1; i < tam_tab; i++){
+        if(t->tabuleiro[lin][i].peca == vazio) continue;
+        else if(t->tabuleiro[lin][i].peca == rei && t->tabuleiro[lin][i].cor != c->cor) return true;
+        else break;
+    }
+    //checa todas as casas à esquerda
+    for(int i = col - 1; i >= 0; i--){
+        if(t->tabuleiro[lin][i].peca == vazio) continue;
+        else if(t->tabuleiro[lin][i].peca == rei && t->tabuleiro[lin][i].cor != c->cor) return true;
+        else break;
+    }
+    return false;
+}
+
+bool bispo_xeque(jogo* t, casa* c){
+    int lin = c->lin, col = c->col;
+    //checa todas as casas na diagonal principal abaixo e à direita
+    for(int passo = 1; lin + passo < tam_tab && col + passo < tam_tab; passo++){
+        if(t->tabuleiro[lin + passo][col + passo].peca == vazio)
+            continue;
+        else if(t->tabuleiro[lin + passo][col + passo].peca == rei && 
+            t->tabuleiro[lin + passo][col + passo].cor != c->cor){
+            return true;
+        }else break;
+    }
+    //checa todas as casa na diagonal principal àcima e à esquerda
+    for(int passo = 1; lin - passo >= 0 && col - passo >= 0; passo++){
+        if(t->tabuleiro[lin - passo][col - passo].peca == vazio)
+            continue;
+        else if(t->tabuleiro[lin - passo][col - passo].peca == rei &&
+            t->tabuleiro[lin - passo][col - passo].cor != c->cor){
+            return true;
+        }else break;
+    }
+    //checa todas as casas na diagonal secundária abaixo e à esquerda
+    for(int passo = 1; lin + passo < tam_tab && col - passo >= 0; passo++){
+        if(t->tabuleiro[lin + passo][col - passo].peca == vazio)
+            continue;
+        else if(t->tabuleiro[lin + passo][col - passo].peca == rei &&
+            t->tabuleiro[lin + passo][col - passo].cor != c->cor){
+            return true;
+        }else break;
+    }
+    //checa todas as casas na diagonal secundária àcima e à direita
+    for(int passo = 1; lin - passo >= 0 && col + passo < tam_tab; passo++){
+        if(t->tabuleiro[lin - passo][col + passo].peca == vazio)
+            continue;
+        else if(t->tabuleiro[lin - passo][col + passo].peca == rei &&
+            t->tabuleiro[lin - passo][col + passo].cor != c->cor){
+            return true;
+        }else break;
+    }
+    return false; 
+}
+
+bool cavalo_xeque(jogo* t, casa *c){
+    int lin = c->lin, col = c->col;
+    //2 p baixo, 1 p direita
+    if(lin + 2 >= 0 && lin + 2 < tam_tab && col + 1 < tam_tab && col + 1 >= 0){
+        if(t->tabuleiro[lin + 2][col + 1].peca == rei && t->tabuleiro[lin + 2][col + 1].cor != c->cor)
+            return true;
+    }
+    if(lin + 2 >= 0 && lin + 2 < tam_tab && col - 1 < tam_tab && col - 1 >= 0){
+        if(t->tabuleiro[lin + 2][col - 1].peca == rei && t->tabuleiro[lin + 2][col - 1].cor != c->cor)
+            return true;
+    }
+    if(lin - 2 >= 0 && lin - 2 < tam_tab && col + 1 < tam_tab && col + 1 >= 0){
+        if(t->tabuleiro[lin - 2][col + 1].peca == rei && t->tabuleiro[lin - 2][col + 1].cor != c->cor)
+            return true;
+    }
+    if(lin - 2 >= 0 && lin - 2 < tam_tab && col - 1 < tam_tab && col - 1 >= 0){
+        if(t->tabuleiro[lin - 2][col - 1].peca == rei && t->tabuleiro[lin - 2][col - 1].cor != c->cor)
+            return true;
+    }
+    if(lin + 1 >= 0 && lin + 1 < tam_tab && col + 2 < tam_tab && col + 2 >= 0){
+        if(t->tabuleiro[lin + 1][col + 2].peca == rei && t->tabuleiro[lin + 1][col + 2].cor != c->cor)
+            return true;
+    }
+    if(lin + 1 >= 0 && lin + 1 < tam_tab && col - 2 < tam_tab && col - 2 >= 0){
+        if(t->tabuleiro[lin + 1][col - 2].peca == rei && t->tabuleiro[lin + 1][col - 2].cor != c->cor)
+            return true;
+    }
+    if(lin - 1 >= 0 && lin - 1 < tam_tab && col + 2 < tam_tab && col + 2 >= 0){
+        if(t->tabuleiro[lin - 1][col + 2].peca == rei && t->tabuleiro[lin - 1][col + 2].cor != c->cor)
+            return true;
+    }
+    if(lin - 1 >= 0 && lin - 1 < tam_tab && col - 2 < tam_tab && col - 2 >= 0){
+        if(t->tabuleiro[lin - 1][col - 2].peca == rei && t->tabuleiro[lin - 1][col - 2].cor != c->cor)
+            return true;
+    }
+    return false;
+}
 
 void movimento_peao(lista* l, casa* c, jogo* t){
     int lin = c->lin, col = c->col;

@@ -17,8 +17,10 @@ void lista_insere(lista* l, casa* ini, casa* fim){
     lista* novo = lista_cria();
     novo->ini = ini;
     novo->fim = fim;
-    //printf("ini: p:%d %d %c\n", novo->ini->peca, tam_tab - novo->ini->lin, 97 + novo->ini->col);
-    //printf("fim:     %d %c\n", tam_tab - novo->fim->lin, 97 + novo->fim->col);
+    /*if(ini->peca == bispo){
+        printf("ini: p:%d %d %c\n", novo->ini->peca, tam_tab - novo->ini->lin, 97 + novo->ini->col);
+        printf("fim:     %d %c\n", tam_tab - novo->fim->lin, 97 + novo->fim->col);
+    }*/
     lista* aux = l;
     while(aux->prox != NULL){
         aux = aux->prox;
@@ -38,7 +40,8 @@ void lista_libera(lista* l){
 lista* lista_busca(lista* l, casa* ini, casa* fim){
     // procura na lista uma jogada determinada
     lista* aux = l;
-    while(aux != NULL && aux->ini != ini && aux->fim != fim){
+    while(aux != NULL){
+        if(aux->ini == ini && aux->fim == fim) break;
         aux = aux->prox;
     }
     if(aux == NULL) return NULL;
