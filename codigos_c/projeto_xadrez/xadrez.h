@@ -68,7 +68,7 @@ struct casa{
 };
 
 struct jogo{
-    casa **tabuleiro;
+    casa tabuleiro[tam_tab][tam_tab];
     char*** unicodes;
     bool fim;
     turno vez[2];
@@ -82,6 +82,6 @@ void imprime_tabuleiro(jogo* j);
 void libera_tabuleiro(jogo* j);
 lista* computa_jogadas(jogo* t);
 void jogo_inicializa(jogo* j);
-bool detecta_xeque(jogo* t, casa* c);
+bool detecta_xeque(jogo* t);
 
 #endif
