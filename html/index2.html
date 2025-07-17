@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+
+<head>
+    <style>
+        .quadrado{
+            border: 1px solid black;
+            border-radius: 100%;
+            display: inline-block;
+            text-align: center;
+        }
+        .diva{
+            background-color: beige;
+            border: 2px dotted lightgreen;
+            height: 120px;
+            width: 120px;
+        }
+
+        #divb{
+            background-color: brown;
+            border: 0;
+            height: 120px;
+            width: 120px;
+        }
+
+        .red{
+            background-color: rebeccapurple;
+            height: 120px;
+            width: 120px;
+        }
+        .paragrafo{
+            background-color: antiquewhite;
+            color: blue;
+            padding: 12px;
+            border-radius: 10px;
+            border: 1px solid gray;
+        }
+    </style> 
+</head>
+
+<body>
+    <div class="diva red quadrado" style="margin-right: 20px;">
+        A
+    </div>
+    <div id="divb" class="quadrado" style="margin-top: 20px;">
+        B
+    </div>
+    <div class="diva quadrado" style="padding-left: 20px;">
+        C
+    </div>
+    <p class="paragrafo">
+        Um texto pequenininho mas repetido
+        Um texto pequenininho mas repetido
+        Um texto pequenininho mas repetido
+        Um texto pequenininho mas repetido
+        Um texto pequenininho mas repetido
+        Um texto pequenininho mas repetido
+        Um texto pequenininho mas repetido
+        Um texto pequenininho mas repetido
+        Um texto pequenininho mas repetido
+        Um texto pequenininho mas repetido
+        Um texto pequenininho mas repetido
+        Um texto pequenininho mas repetido
+        Um texto pequenininho mas repetido
+    </p>
+    <button onclick="clicou()">Aperte-me</button>
+    <script>
+        function clicou(){
+            const divb = document.getElementById('divb')
+            // divb.innerHTML= divb.innerHTML + "eu não sei o que escrever aq"
+            // divb.textContent = divb.innerHTML + divb.outerHTML
+            
+        }
+    </script>
+
+</body>

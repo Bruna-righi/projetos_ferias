@@ -10,7 +10,7 @@ def gerar_sequencia_aleatoria(tamanho):
 
 
 s = int(input())
-tamanho = [100, 500, 1000, 1500, 2000, 2500, 3000, 3500, 4000, 4500, 5000, 5500, 6000, 6500, 7000, 7500]
+tamanho = [20000, 22000, 24000]
 repeticoes = [10, 5, 4, 2]
 t = tamanho[s]
 
