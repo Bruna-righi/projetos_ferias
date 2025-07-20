@@ -1,6 +1,7 @@
 #include <iostream>
 #include <vector>
 #include <math.h>
+#include <algorithm>
 using namespace std;
 
 // quero buscar o menor nó que esse nó consegue chegar
@@ -44,28 +45,46 @@ int main() {
     for (int i = 0; i<n; i++) {
         arr[i] = dfs(i, graph, menor);
     }
-    vector<pair<pair<int, int>, int>> probabilidades;
+    vector<int> subarr;
     for (auto intervalo : intervalos){
-        int mediana = ceil((intervalo.second + intervalo.first)/2);
+        for (int i = intervalo.first; i <= intervalo.second; i++) {
+            subarr.push_back(arr[i]);
+        }
+        sort(subarr.begin(), subarr.end());
+        int mediana = ceil(subarr.size()/2);
         bool continuar = true;
         if (intervalo.first == intervalo.second){
             cout << "1\n";
             continue;
         }
         int i = mediana;
-        while (arr[i] == arr[mediana]){
+        // int j = mediana, tam = 0, maximum = 0, indice_longest;
+        // while (j < intervalo.second - 1){
+        //     if (arr[j] == arr[j+1]){
+        //         tam++;
+        //     }
+        //     else {
+        //         maximum = max(maximum, tam);
+        //         indice_longest = j - tam;
+        //         tam = 0;
+        //     }
+        //     j++;
+        // }
+        while (i >= 0 && subarr[i] == subarr[mediana]){
             i--;
-            if (i == intervalo.first && arr[i] == arr[mediana]){
-                cout << "1\n";
-                continuar = false;
-                break;
-            }
+        }
+        if (i < 0){
+            cout << "1\n";
+            continuar = false;
         }
         if(continuar){
-            if(i >= 0 && arr[i] != arr[i+1] && i < mediana && i >= intervalo.first){
-                cout << arr[i] + 1 << endl;
+            // if (tam > mediana - i){
+            //     cout << arr[indice_longest - 1] + 1 << endl;
+            // }
+            if (i >= 0 && subarr[i] != subarr[i+1]){
+                cout << subarr[i] + 1 << endl;
             } 
-            else cout << arr[mediana] +1 << endl;
+            else cout << subarr[mediana] +1 << endl;
         }
     }
     return 0;
